@@ -28,8 +28,8 @@ class MedicalDiagnosisAI(BaseAI):
     def train(self, csv_path):
         # Load dataset
         df = pd.read_csv(csv_path)
-        X = df['diagnosis']  # e.g., "fever,cough"
-        y = df['symptoms'] # e.g., "flu"
+        X = df['symptoms']  # e.g., "fever,cough"
+        y = df['diagnosis'] # e.g., "flu"
         # Create a pipeline: vectorize symptoms, then classify
         self.model = Pipeline([
             ('vect', CountVectorizer()),
@@ -49,9 +49,18 @@ class MedicalDiagnosisAI(BaseAI):
     def load(self, filepath):
         self.model = joblib.load(filepath)
 
-# Example usage:
+    def is_trained(self):
+        """
+        Returns True if the model has been trained.
+        """
+        return self.model is not None
+
 if __name__ == "__main__":
     ai = MedicalDiagnosisAI("NurseHelper")
-    ai.train("patient_data")  # Make sure the file is in the same folder as this script
-    # response = ai.predict("fever, cough")
-    # print(response)
+    ai.train("diseases_and_symptoms.csv")
+    print("AI trained:", ai.is_trained())  # Should print True if training succeeded
+
+    # Get user input
+    user_symptoms = input("Enter symptoms separated by commas (e.g., fever, cough): ")
+    response = ai.predict(user_symptoms)
+    print("Most likely diagnosis:", response)
