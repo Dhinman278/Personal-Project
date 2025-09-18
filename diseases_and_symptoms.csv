@@ -1,0 +1,40 @@
+symptoms,diagnosis
+Fever,Influenza
+Cough,Influenza
+Body aches,Influenza
+Increased thirst,Diabetes
+Frequent urination,Diabetes
+Fatigue,Diabetes
+Fever,COVID-19
+Cough,COVID-19
+Loss of taste or smell,COVID-19
+Headache,Hypertension
+Blurred vision,Hypertension
+Nausea,Hypertension
+Shortness of breath,Asthma
+Wheezing,Asthma
+Chest tightness,Asthma
+Chronic cough,Tuberculosis
+Weight loss,Tuberculosis
+Night sweats,Tuberculosis
+Fever,Malaria
+Chills,Malaria
+Sweating,Malaria
+Cough,Pneumonia
+Chest pain,Pneumonia
+Shortness of breath,Pneumonia
+Throbbing pain,Migraine
+Sensitivity to light,Migraine
+Nausea,Migraine
+Fatigue,Anemia
+Pale skin,Anemia
+Shortness of breath,Anemia
+Rash,Chickenpox
+Itchy skin,Chickenpox
+Fever,Chickenpox
+Fever,Measles
+Rash,Measles
+Runny nose,Measles
+Jaundice,Hepatitis B
+Fatigue,Hepatitis B
+Abdominal pain,Hepatitis B
