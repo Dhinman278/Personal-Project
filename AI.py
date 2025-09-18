@@ -1,14 +1,13 @@
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow info/warning messages
-from tensorflow.keras.models import load_model
+from sklearn.linear_model import LogisticRegression
 import pandas as pd
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import RandomOverSampler
-
 
 # Utility to clean and convert both datasets, then merge them into a unified DataFrame
 def merge_and_clean_datasets(training_path, dataset_path, merged_path='merged_dataset.csv'):
@@ -79,99 +78,22 @@ y = pd.factorize(df['prognosis'])[0]
 label_names = pd.factorize(df['prognosis'])[1]
 
 # 3. Oversample minority classes
-ros = RandomOverSampler(random_state=42)
-X_res, y_res = ros.fit_resample(X, y)
-
 # 4. Split into train and test sets
-X_train, X_test, y_train, y_test = train_test_split(X_res, y_res, test_size=0.2, random_state=42)
+# 3. Split into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 
 # 4. Define a function to build the model (for cross-validation and tuning)
-def build_model(optimizer='adam'):
-    from tensorflow.keras import regularizers
-    model = models.Sequential([
-        layers.Input(shape=(len(symptom_cols),)),
-        layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.005)),
-        layers.Dropout(0.5),
-        layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.005)),
-        layers.Dropout(0.4),
-        layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.005)),
-        layers.Dropout(0.3),
-        layers.Dense(len(label_names), activation='softmax')
-    ])
-    model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    return model
+
 
 
 # 5. Model training/loading logic
 
-model_path = 'disease_model.h5'
-# Check if model exists and if its input shape matches the merged data
-retrain = True
-if os.path.exists(model_path):
-    try:
-        best_model = load_model(model_path)
-        # Check input shape compatibility
-        if best_model.input_shape[-1] == X_train.shape[1]:
-            print("Loaded trained model from file.")
-            best_params = (16, 'adam')
-            retrain = False
-        else:
-            print("Model input shape does not match data. Retraining...")
-            os.remove(model_path)
-    except Exception as e:
-        print(f"Error loading model: {e}. Retraining...")
-        os.remove(model_path)
-
-if retrain:
-    from sklearn.model_selection import StratifiedKFold
-    from tensorflow.keras.callbacks import EarlyStopping
-    import numpy as np
-    best_val_acc = 0
-    best_params = None
-    best_model = None
-    batch_sizes = [16, 32]
-    optimizers = ['adam', 'rmsprop']
-    kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    for batch_size in batch_sizes:
-        for optimizer in optimizers:
-            val_accuracies = []
-            for train_idx, val_idx in kfold.split(X_train, y_train):
-                model = build_model(optimizer=optimizer)
-                early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-                model.fit(
-                    X_train[train_idx], y_train[train_idx],
-                    epochs=100,
-                    batch_size=batch_size,
-                    validation_data=(X_train[val_idx], y_train[val_idx]),
-                    verbose=0,
-                    callbacks=[early_stop]
-                )
-                val_loss, val_acc = model.evaluate(X_train[val_idx], y_train[val_idx], verbose=0)
-                val_accuracies.append(val_acc)
-            avg_val_acc = np.mean(val_accuracies)
-            print(f"Batch size: {batch_size}, Optimizer: {optimizer}, Avg. val accuracy: {avg_val_acc:.2f}")
-            if avg_val_acc > best_val_acc:
-                best_val_acc = avg_val_acc
-                best_params = (batch_size, optimizer)
-                best_model = build_model(optimizer=optimizer)
-                early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-                best_model.fit(
-                    X_train, y_train,
-                    epochs=100,
-                    batch_size=batch_size,
-                    validation_split=0.1,
-                    verbose=0,
-                    callbacks=[early_stop]
-                )
-    # Save the trained model
-    best_model.save(model_path)
-    print(f"Model trained and saved to {model_path}.")
-
-# 6. Evaluate the best model
-loss, accuracy = best_model.evaluate(X_test, y_test, verbose=0)
-print(f"\nBest params: batch_size={best_params[0]}, optimizer={best_params[1]}")
-print(f"Test accuracy: {accuracy:.2f}")
+# 5. Train logistic regression model with class_weight='balanced'
+logreg = LogisticRegression(max_iter=1000, class_weight='balanced')
+logreg.fit(X_train, y_train)
+accuracy = logreg.score(X_test, y_test)
+print(f"\nLogistic Regression Test accuracy: {accuracy:.2f}")
 
 # 7. Prompt user for symptoms
 
@@ -200,14 +122,15 @@ for idx, symptom in enumerate(symptom_cols):
     if symptom.lower() in user_symptoms:
         user_vector[0, idx] = 1
 
+
 # 9. Predict disease and show top 3 most likely
-pred = best_model.predict(user_vector)
-top_indices = np.argsort(pred[0])[::-1][:3]
+probs = logreg.predict_proba(user_vector)[0]
+top_indices = np.argsort(probs)[::-1][:3]
 print("\nTop 3 predicted diseases:")
 for rank, idx in enumerate(top_indices, 1):
-    print(f"{rank}. {label_names[idx]} (probability: {pred[0][idx]:.2f})")
+    print(f"{rank}. {label_names[idx]} (probability: {probs[idx]:.2f})")
 
 # Print all probabilities for transparency
 print("\nAll disease probabilities:")
 for idx, name in enumerate(label_names):
-    print(f"{name}: {pred[0][idx]:.4f}")
+    print(f"{name}: {probs[idx]:.4f}")
