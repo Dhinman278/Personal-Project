@@ -91,13 +91,12 @@ def build_model(optimizer='adam'):
     from tensorflow.keras import regularizers
     model = models.Sequential([
         layers.Input(shape=(len(symptom_cols),)),
-        layers.Dense(128, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
+        layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.005)),
+        layers.Dropout(0.5),
+        layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.005)),
+        layers.Dropout(0.4),
+        layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.005)),
         layers.Dropout(0.3),
-        layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
-        layers.Dropout(0.3),
-        layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
-        layers.Dropout(0.2),
-        layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
         layers.Dense(len(label_names), activation='softmax')
     ])
     model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
