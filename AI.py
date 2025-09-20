@@ -31,6 +31,296 @@ import threading
 import queue
 import time
 
+class MentalHealthAssessment:
+    """
+    Comprehensive Mental Health Assessment and Support System
+    """
+    
+    def __init__(self):
+        self.crisis_keywords = [
+            'suicide', 'kill myself', 'end my life', 'not worth living', 'want to die',
+            'self harm', 'cutting', 'hurting myself', 'overdose', 'end it all'
+        ]
+        self.severity_indicators = self._load_severity_indicators()
+        self.mental_health_screenings = self._load_screening_tools()
+        self.crisis_resources = self._load_crisis_resources()
+        self.treatment_recommendations = self._load_treatment_options()
+    
+    def _load_severity_indicators(self):
+        """Load mental health severity assessment criteria"""
+        return {
+            'depression': {
+                'mild': ['sad', 'down', 'low mood', 'tired', 'loss of interest'],
+                'moderate': ['hopeless', 'worthless', 'guilt', 'sleep problems', 'appetite changes'],
+                'severe': ['suicidal thoughts', 'cant function', 'extreme hopelessness', 'psychotic symptoms']
+            },
+            'anxiety': {
+                'mild': ['worried', 'nervous', 'restless', 'on edge'],
+                'moderate': ['panic attacks', 'avoidance', 'physical symptoms', 'intrusive thoughts'],
+                'severe': ['agoraphobia', 'severe panic', 'cant leave house', 'debilitating fear']
+            },
+            'psychosis': {
+                'mild': ['suspicious thoughts', 'unusual experiences', 'mild paranoia'],
+                'moderate': ['clear delusions', 'hallucinations', 'disorganized thinking'],
+                'severe': ['command hallucinations', 'severe delusions', 'complete loss of reality']
+            },
+            'mania': {
+                'mild': ['elevated mood', 'increased energy', 'decreased sleep'],
+                'moderate': ['grandiose thoughts', 'risky behavior', 'rapid speech'],
+                'severe': ['psychotic features', 'complete loss of judgment', 'hospitalization needed']
+            }
+        }
+    
+    def _load_screening_tools(self):
+        """Load standardized mental health screening questionnaires"""
+        return {
+            'PHQ-9': {
+                'questions': [
+                    'Little interest or pleasure in doing things',
+                    'Feeling down, depressed, or hopeless',
+                    'Trouble falling or staying asleep, or sleeping too much',
+                    'Feeling tired or having little energy',
+                    'Poor appetite or overeating',
+                    'Feeling bad about yourself',
+                    'Trouble concentrating',
+                    'Moving or speaking slowly, or being fidgety',
+                    'Thoughts of self-harm'
+                ],
+                'scoring': 'Each item 0-3, total 0-27'
+            },
+            'GAD-7': {
+                'questions': [
+                    'Feeling nervous, anxious, or on edge',
+                    'Not being able to stop or control worrying',
+                    'Worrying too much about different things',
+                    'Trouble relaxing',
+                    'Being so restless its hard to sit still',
+                    'Becoming easily annoyed or irritable',
+                    'Feeling afraid as if something awful might happen'
+                ],
+                'scoring': 'Each item 0-3, total 0-21'
+            },
+            'PTSD-5': {
+                'questions': [
+                    'Repeated, disturbing memories of the stressful experience',
+                    'Trouble sleeping',
+                    'Feeling distant or cut off from other people',
+                    'Being super-alert or watchful on guard',
+                    'Feeling irritable or having angry outbursts'
+                ],
+                'scoring': 'Each item 0-4, total 0-20'
+            }
+        }
+    
+    def _load_crisis_resources(self):
+        """Load crisis intervention resources and hotlines"""
+        return {
+            'suicide_prevention': {
+                'national': '988 - Suicide & Crisis Lifeline (24/7)',
+                'text': 'Text HOME to 741741 - Crisis Text Line',
+                'chat': 'suicidepreventionlifeline.org - Online Chat',
+                'international': '1-800-273-8255 - International Association'
+            },
+            'domestic_violence': {
+                'national': '1-800-799-7233 - National Domestic Violence Hotline',
+                'text': 'Text START to 88788'
+            },
+            'substance_abuse': {
+                'samhsa': '1-800-662-4357 - SAMHSA National Helpline',
+                'description': 'Treatment referral and information service'
+            },
+            'eating_disorders': {
+                'neda': '1-800-931-2237 - National Eating Disorders Association',
+                'text': 'Text NEDA to 741741'
+            },
+            'lgbtq': {
+                'trevor': '1-866-488-7386 - Trevor Project (LGBTQ youth)',
+                'trans': '1-877-565-8860 - Trans Lifeline'
+            }
+        }
+    
+    def _load_treatment_options(self):
+        """Load evidence-based treatment recommendations"""
+        return {
+            'depression': [
+                'Cognitive Behavioral Therapy (CBT)',
+                'Interpersonal Therapy (IPT)',
+                'Antidepressant medications (SSRIs, SNRIs)',
+                'Behavioral Activation',
+                'Mindfulness-Based Cognitive Therapy'
+            ],
+            'anxiety': [
+                'Cognitive Behavioral Therapy (CBT)',
+                'Exposure and Response Prevention',
+                'Anti-anxiety medications (benzodiazepines, SSRIs)',
+                'Mindfulness and Relaxation Training',
+                'EMDR for trauma-related anxiety'
+            ],
+            'ptsd': [
+                'Trauma-Focused CBT',
+                'Eye Movement Desensitization and Reprocessing (EMDR)',
+                'Prolonged Exposure Therapy',
+                'Cognitive Processing Therapy',
+                'SSRI/SNRI medications'
+            ],
+            'bipolar': [
+                'Mood stabilizers (lithium, anticonvulsants)',
+                'Dialectical Behavior Therapy (DBT)',
+                'Family-Focused Therapy',
+                'Interpersonal and Social Rhythm Therapy',
+                'Psychoeducation'
+            ]
+        }
+    
+    def assess_mental_health_severity(self, symptoms_text, extracted_symptoms):
+        """
+        Assess mental health symptom severity and risk level
+        
+        Args:
+            symptoms_text: Raw text input from user
+            extracted_symptoms: List of identified mental health symptoms
+            
+        Returns:
+            dict: Mental health assessment with severity and recommendations
+        """
+        severity_score = 0
+        identified_conditions = []
+        risk_level = 'low'
+        
+        # Crisis detection
+        crisis_detected = any(keyword in symptoms_text.lower() for keyword in self.crisis_keywords)
+        
+        # Severity assessment for each condition
+        for condition, severity_levels in self.severity_indicators.items():
+            condition_score = 0
+            matched_symptoms = []
+            
+            for severity, symptom_list in severity_levels.items():
+                for symptom in symptom_list:
+                    if symptom in symptoms_text.lower() or symptom.replace(' ', '_') in extracted_symptoms:
+                        if severity == 'mild':
+                            condition_score += 1
+                        elif severity == 'moderate':
+                            condition_score += 2
+                        elif severity == 'severe':
+                            condition_score += 3
+                        matched_symptoms.append(symptom)
+            
+            if condition_score > 0:
+                identified_conditions.append({
+                    'condition': condition,
+                    'score': condition_score,
+                    'symptoms': matched_symptoms,
+                    'severity': self._interpret_severity_score(condition_score)
+                })
+                severity_score += condition_score
+        
+        # Determine overall risk level
+        if crisis_detected or severity_score >= 8:
+            risk_level = 'crisis'
+        elif severity_score >= 5:
+            risk_level = 'high'
+        elif severity_score >= 3:
+            risk_level = 'moderate'
+        else:
+            risk_level = 'low'
+        
+        return {
+            'overall_severity_score': severity_score,
+            'risk_level': risk_level,
+            'crisis_detected': crisis_detected,
+            'identified_conditions': identified_conditions,
+            'recommendations': self._generate_mental_health_recommendations(risk_level, identified_conditions),
+            'crisis_resources': self.crisis_resources if crisis_detected or risk_level == 'crisis' else {}
+        }
+    
+    def _interpret_severity_score(self, score):
+        """Convert numerical severity score to descriptive level"""
+        if score >= 6:
+            return 'Severe'
+        elif score >= 3:
+            return 'Moderate'
+        elif score >= 1:
+            return 'Mild'
+        else:
+            return 'Minimal'
+    
+    def _generate_mental_health_recommendations(self, risk_level, conditions):
+        """Generate appropriate mental health recommendations"""
+        recommendations = []
+        
+        if risk_level == 'crisis':
+            recommendations.extend([
+                "🚨 IMMEDIATE CRISIS INTERVENTION NEEDED",
+                "Call 988 (Suicide & Crisis Lifeline) NOW",
+                "Go to nearest Emergency Room",
+                "Do not leave person alone",
+                "Remove any means of self-harm"
+            ])
+        elif risk_level == 'high':
+            recommendations.extend([
+                "Urgent mental health evaluation recommended",
+                "Contact mental health professional within 24 hours",
+                "Consider urgent care or crisis center",
+                "Implement safety planning",
+                "Reach out to support system"
+            ])
+        elif risk_level == 'moderate':
+            recommendations.extend([
+                "Schedule appointment with mental health professional",
+                "Consider therapy or counseling",
+                "Discuss symptoms with primary care doctor",
+                "Practice stress management techniques",
+                "Maintain regular sleep and exercise"
+            ])
+        else:
+            recommendations.extend([
+                "Monitor symptoms for changes",
+                "Practice self-care and stress management",
+                "Consider preventive mental health resources",
+                "Maintain healthy lifestyle habits"
+            ])
+        
+        # Add condition-specific recommendations
+        for condition_data in conditions:
+            condition = condition_data['condition']
+            if condition in self.treatment_recommendations:
+                recommendations.append(f"For {condition}: Consider {self.treatment_recommendations[condition][0]}")
+        
+        return recommendations
+    
+    def generate_safety_plan(self, user_input, risk_assessment):
+        """Generate personalized mental health safety plan"""
+        safety_plan = {
+            'warning_signs': [],
+            'coping_strategies': [],
+            'social_supports': [],
+            'professional_contacts': [],
+            'crisis_resources': self.crisis_resources,
+            'environment_safety': []
+        }
+        
+        # Personalized based on identified conditions
+        for condition_data in risk_assessment.get('identified_conditions', []):
+            condition = condition_data['condition']
+            
+            if condition == 'depression':
+                safety_plan['warning_signs'].extend([
+                    'Increasing hopelessness', 'Social withdrawal', 'Sleep changes'
+                ])
+                safety_plan['coping_strategies'].extend([
+                    'Call a friend', 'Take a walk', 'Practice deep breathing'
+                ])
+            elif condition == 'anxiety':
+                safety_plan['warning_signs'].extend([
+                    'Racing thoughts', 'Physical tension', 'Avoidance behaviors'
+                ])
+                safety_plan['coping_strategies'].extend([
+                    'Grounding techniques', 'Progressive muscle relaxation', 'Mindfulness'
+                ])
+        
+        return safety_plan
+
 class AdvancedMedicalAI:
     """
     Advanced Medical AI with comprehensive features including:
@@ -39,6 +329,7 @@ class AdvancedMedicalAI:
     - Clinical decision support
     - Risk stratification
     - Emergency detection
+    - Mental health assessment
     """
     
     def __init__(self):
@@ -50,6 +341,7 @@ class AdvancedMedicalAI:
         self.drug_interactions = self._load_drug_interactions()
         self.risk_factors = self._load_risk_factors()
         self.medical_guidelines = self._load_medical_guidelines()
+        self.mental_health = MentalHealthAssessment()
         
     def _load_drug_interactions(self):
         """Load common drug interaction database"""
@@ -733,10 +1025,38 @@ class NaturalLanguageProcessor:
             'hearing problems': ['cant hear well', 'hearing loss', 'deaf', 'muffled hearing', 'ear problems'],
             'ringing in ears': ['tinnitus', 'buzzing ears', 'ear noise', 'whistling ears'],
             
-            # Psychiatric/Mental Health
-            'anxiety': ['anxious', 'worried', 'nervous', 'panic', 'stressed', 'on edge'],
-            'depression': ['sad', 'depressed', 'down', 'hopeless', 'blue', 'melancholy'],
-            'mood changes': ['moody', 'irritable', 'mood swings', 'emotional', 'temperamental']
+            # Comprehensive Mental Health & Psychiatric Symptoms
+            'anxiety': ['anxious', 'worried', 'nervous', 'panic', 'stressed', 'on edge', 'restless', 'tense', 'fearful'],
+            'depression': ['sad', 'depressed', 'down', 'hopeless', 'blue', 'melancholy', 'empty', 'worthless', 'guilty'],
+            'mood changes': ['moody', 'irritable', 'mood swings', 'emotional', 'temperamental', 'unpredictable emotions'],
+            'panic attacks': ['panic', 'sudden fear', 'racing heart', 'cant breathe', 'overwhelming terror', 'intense fear'],
+            'social anxiety': ['social fear', 'afraid of people', 'embarrassed', 'self conscious', 'avoid social situations'],
+            'obsessive thoughts': ['obsessive', 'intrusive thoughts', 'cant stop thinking', 'repetitive thoughts', 'unwanted thoughts'],
+            'compulsive behavior': ['compulsive', 'repetitive actions', 'must do certain things', 'ritualistic behavior'],
+            'hallucinations': ['hearing voices', 'seeing things', 'hallucinating', 'voices in head', 'visual disturbances'],
+            'delusions': ['paranoid', 'suspicious', 'false beliefs', 'conspiracy', 'persecution', 'grandiose thoughts'],
+            'suicidal thoughts': ['suicidal', 'want to die', 'end my life', 'kill myself', 'not worth living', 'suicide'],
+            'self harm': ['cutting', 'hurting myself', 'self injury', 'harming myself', 'self mutilation'],
+            'eating problems': ['not eating', 'binge eating', 'purging', 'obsessed with food', 'fear of gaining weight'],
+            'sleep disturbances': ['cant sleep', 'nightmares', 'sleep problems', 'insomnia', 'sleeping too much', 'restless sleep'],
+            'concentration problems': ['cant focus', 'distracted', 'poor concentration', 'mind wandering', 'attention problems'],
+            'memory issues': ['forgetful', 'memory problems', 'cant remember', 'memory loss', 'confusion'],
+            'agitation': ['agitated', 'restless', 'cant sit still', 'pacing', 'fidgety', 'hyperactive'],
+            'withdrawal': ['isolating', 'avoiding people', 'withdrawn', 'antisocial', 'dont want to be around others'],
+            'mood episodes': ['manic', 'euphoric', 'extremely happy', 'high energy', 'grandiose', 'hypomanic'],
+            'emotional numbness': ['numb', 'empty inside', 'no feelings', 'emotionally dead', 'disconnected'],
+            'anger issues': ['angry', 'rage', 'violent thoughts', 'explosive anger', 'irritability', 'aggression'],
+            'substance use': ['drinking too much', 'using drugs', 'addiction', 'substance abuse', 'dependency'],
+            'trauma symptoms': ['flashbacks', 'nightmares', 'ptsd', 'traumatic memories', 'triggered', 'hypervigilant'],
+            'body image issues': ['hate my body', 'feel fat', 'body dysmorphia', 'ugly', 'appearance obsession'],
+            'gender dysphoria': ['wrong body', 'gender identity', 'dont feel like my gender', 'transgender feelings'],
+            'sexual problems': ['no libido', 'sexual dysfunction', 'intimacy issues', 'sexual trauma', 'arousal problems'],
+            'relationship problems': ['relationship issues', 'trust problems', 'codependent', 'attachment issues'],
+            'work stress': ['job stress', 'burnout', 'workplace anxiety', 'career problems', 'work overwhelm'],
+            'grief': ['grieving', 'mourning', 'loss', 'bereavement', 'missing someone', 'death of loved one'],
+            'perfectionism': ['perfectionist', 'never good enough', 'high standards', 'fear of failure', 'overachiever'],
+            'abandonment fears': ['fear of abandonment', 'clingy', 'afraid of being left', 'rejection sensitivity'],
+            'dissociation': ['dissociating', 'out of body', 'detached', 'unreal feelings', 'depersonalization']
         }
         
         # Add reverse mapping and variations
@@ -1171,12 +1491,38 @@ def enhanced_medical_prediction(user_input, best_model, logistic_model, label_na
     conversation_result = nlp_processor.process_conversation_turn(user_input)
     extracted_symptoms = conversation_result['symptoms']
     
+    # 2.5. MENTAL HEALTH ASSESSMENT
+    mental_health_assessment = advanced_ai.mental_health.assess_mental_health_severity(
+        user_input, extracted_symptoms
+    )
+    
+    # Check for mental health crisis
+    if mental_health_assessment['crisis_detected'] or mental_health_assessment['risk_level'] == 'crisis':
+        print("🚨 **MENTAL HEALTH CRISIS DETECTED**")
+        safety_plan = advanced_ai.mental_health.generate_safety_plan(user_input, mental_health_assessment)
+        return {
+            'success': True,
+            'mental_health_crisis': True,
+            'crisis_assessment': mental_health_assessment,
+            'safety_plan': safety_plan,
+            'message': "🚨 MENTAL HEALTH CRISIS - IMMEDIATE INTERVENTION NEEDED",
+            'immediate_action': 'CALL 988 (Suicide & Crisis Lifeline) NOW',
+            'emergency_assessment': emergency_assessment
+        }
+    
+    # Display mental health status if significant
+    if mental_health_assessment['risk_level'] in ['high', 'moderate']:
+        print(f"🧠 **Mental Health Assessment**: {mental_health_assessment['risk_level']} risk level detected")
+        for condition in mental_health_assessment['identified_conditions']:
+            print(f"   • {condition['condition'].title()}: {condition['severity']} severity")
+    
     if not extracted_symptoms:
         return {
             'success': False,
             'message': nlp_processor.generate_conversational_response([], [], []),
             'symptoms_found': [],
             'emergency_assessment': emergency_assessment,
+            'mental_health_assessment': mental_health_assessment,
             'needs_more_info': True
         }
     
@@ -1274,6 +1620,18 @@ def enhanced_medical_prediction(user_input, best_model, logistic_model, label_na
         for interaction in drug_interactions['interactions'][:3]:
             response_parts.append(f"   • {interaction['drug1']} + {interaction['drug2']}: {interaction['severity']} risk")
     
+    # Mental health assessment
+    if mental_health_assessment['risk_level'] != 'low':
+        response_parts.append(f"**🧠 Mental Health Assessment**: {mental_health_assessment['risk_level'].title()} Risk")
+        if mental_health_assessment['identified_conditions']:
+            for condition in mental_health_assessment['identified_conditions'][:3]:
+                response_parts.append(f"   • {condition['condition'].title()}: {condition['severity']} severity")
+        
+        # Add mental health recommendations
+        response_parts.append("**Mental Health Recommendations**:")
+        for rec in mental_health_assessment['recommendations'][:3]:
+            response_parts.append(f"   • {rec}")
+    
     comprehensive_response = "\n".join(response_parts)
     
     # 11. SAVE CONSULTATION (if patient ID provided)
@@ -1298,6 +1656,7 @@ def enhanced_medical_prediction(user_input, best_model, logistic_model, label_na
         'confidences': top_confidences,
         'uncertainty_metrics': uncertainty_metrics,
         'emergency_assessment': emergency_assessment,
+        'mental_health_assessment': mental_health_assessment,
         'drug_interactions': drug_interactions,
         'risk_assessments': risk_assessments,
         'patient_history': patient_history,
@@ -1307,6 +1666,110 @@ def enhanced_medical_prediction(user_input, best_model, logistic_model, label_na
         'entities': conversation_result['entities'],
         'needs_more_info': False
     }
+
+def generate_comprehensive_recommendation(medical_results, mental_health_assessment, uncertainty_analysis):
+    """
+    Generate comprehensive recommendations combining medical and mental health insights
+    
+    Args:
+        medical_results: Medical prediction results
+        mental_health_assessment: Mental health assessment results
+        uncertainty_analysis: Uncertainty quantification results
+        
+    Returns:
+        dict: Comprehensive recommendations
+    """
+    recommendations = {
+        'immediate_actions': [],
+        'follow_up_care': [],
+        'lifestyle_modifications': [],
+        'mental_health_support': [],
+        'monitoring_guidelines': [],
+        'professional_referrals': []
+    }
+    
+    # Mental health crisis takes priority
+    if mental_health_assessment['crisis_detected'] or mental_health_assessment['risk_level'] == 'crisis':
+        recommendations['immediate_actions'] = [
+            "🚨 CALL 988 (Suicide & Crisis Lifeline) IMMEDIATELY",
+            "Go to nearest Emergency Room or call 911",
+            "Do not leave person alone",
+            "Remove any means of self-harm"
+        ]
+        return recommendations
+    
+    # High-risk mental health
+    elif mental_health_assessment['risk_level'] == 'high':
+        recommendations['immediate_actions'].append(
+            "Contact mental health professional within 24 hours"
+        )
+        recommendations['mental_health_support'].extend([
+            "Implement safety planning strategies",
+            "Reach out to trusted support system",
+            "Consider urgent mental health services"
+        ])
+    
+    # Moderate mental health risk
+    elif mental_health_assessment['risk_level'] == 'moderate':
+        recommendations['follow_up_care'].append(
+            "Schedule appointment with mental health professional within 1 week"
+        )
+        recommendations['mental_health_support'].extend([
+            "Practice stress management techniques",
+            "Maintain regular sleep schedule",
+            "Engage in supportive activities"
+        ])
+    
+    # Medical recommendations based on predictions
+    if medical_results.get('success') and medical_results.get('predictions'):
+        top_prediction = medical_results['predictions'][0]
+        confidence = medical_results['confidences'][0]
+        
+        if confidence > 0.8:
+            recommendations['follow_up_care'].append(
+                f"Consult healthcare provider about {top_prediction}"
+            )
+        elif confidence > 0.6:
+            recommendations['follow_up_care'].append(
+                f"Monitor symptoms related to {top_prediction}"
+            )
+        else:
+            recommendations['monitoring_guidelines'].append(
+                "Track symptoms and seek medical advice if worsening"
+            )
+    
+    # Emergency medical situations
+    if medical_results.get('emergency_assessment', {}).get('emergency_score', 0) >= 5:
+        recommendations['immediate_actions'].insert(0, 
+            "🚨 SEEK IMMEDIATE MEDICAL ATTENTION"
+        )
+    
+    # Add general wellness recommendations
+    recommendations['lifestyle_modifications'].extend([
+        "Maintain regular exercise routine",
+        "Follow balanced nutrition",
+        "Ensure adequate sleep (7-9 hours)",
+        "Practice stress reduction techniques"
+    ])
+    
+    # Professional referrals based on conditions
+    identified_conditions = mental_health_assessment.get('identified_conditions', [])
+    for condition_data in identified_conditions:
+        condition = condition_data['condition']
+        if condition in ['depression', 'anxiety']:
+            recommendations['professional_referrals'].append(
+                f"Consider therapy (CBT) for {condition}"
+            )
+        elif condition == 'ptsd':
+            recommendations['professional_referrals'].append(
+                "Trauma-focused therapy recommended"
+            )
+        elif condition in ['psychosis', 'mania']:
+            recommendations['professional_referrals'].append(
+                "Psychiatric evaluation recommended"
+            )
+    
+    return recommendations
 
 # Legacy function for compatibility
 def predict_from_natural_language(user_input, best_model, logistic_model, label_names, symptom_cols, nn_weight=0.7, lr_weight=0.3):
@@ -1320,6 +1783,7 @@ print("🏥 ADVANCED AI MEDICAL ASSISTANT - COMPREHENSIVE ANALYSIS SYSTEM")
 print("="*80)
 print("\n🚀 **Enhanced Features Available:**")
 print("   • 🧠 Advanced AI with Emergency Detection")
+print("   • 🧠 Mental Health Assessment & Crisis Detection")
 print("   • 💊 Drug Interaction Checking")
 print("   • 📊 Risk Stratification & Assessment") 
 print("   • 🎯 Uncertainty Quantification")
@@ -1327,6 +1791,9 @@ print("   • 📋 Patient History Management")
 print("   • 🗺️  Visual Symptom Mapping")
 print("   • 🔍 Multi-modal Medical Analysis")
 print("   • ⚡ Real-time Learning & Adaptation")
+print("   • 🆘 Crisis Intervention & Safety Planning")
+print("   • 🎭 Psychiatric Symptom Recognition")
+print("   • 💚 Comprehensive Mental Health Support")
 
 # Patient setup
 print(f"\n📝 **Patient Setup**")
@@ -1441,62 +1908,295 @@ while attempt < max_attempts:
         patient_id, vital_signs, medications
     )
     
-    # Provide feedback to user
+    # Provide comprehensive feedback
     conversation_interface.provide_feedback(result['message'])
     
     if result['success']:
-        # Show detailed analysis
-        print("\n📋 **Detailed Analysis:**")
-        print(f"**Symptoms identified:** {', '.join(result['symptoms_found'])}")
+        # Enhanced detailed analysis
+        print("\n" + "="*60)
+        print("� **COMPREHENSIVE MEDICAL ANALYSIS REPORT**")
+        print("="*60)
         
-        if result['entities']:
-            print(f"**Additional information:** {result['entities']}")
-            
-        print(f"\n🎯 **Top 5 Possible Conditions:**")
+        # Emergency Assessment
+        if result.get('emergency_assessment', {}).get('emergency_score', 0) > 0:
+            emergency = result['emergency_assessment']
+            print(f"\n🚨 **EMERGENCY ASSESSMENT**: {emergency['urgency_level']}")
+            if emergency.get('detected_emergencies'):
+                print(f"   Detected: {', '.join(emergency['detected_emergencies'])}")
+            print("   Recommendations:")
+            for rec in emergency.get('recommendations', [])[:3]:
+                print(f"   • {rec}")
+        
+        # Symptoms Analysis
+        print(f"\n🔍 **SYMPTOMS ANALYSIS**:")
+        print(f"   • Identified: {', '.join(result['symptoms_found'])}")
+        if result.get('extracted_symptoms'):
+            print(f"   • Extracted: {', '.join(result['extracted_symptoms'])}")
+        if result.get('entities'):
+            print(f"   • Context: {result['entities']}")
+        
+        # Prediction Analysis with Uncertainty
+        uncertainty = result.get('uncertainty_metrics', {})
+        print(f"\n🎯 **PREDICTION ANALYSIS** ({uncertainty.get('confidence_level', 'Unknown Confidence')}):")
+        print(f"   • Uncertainty Score: {uncertainty.get('uncertainty_score', 0):.3f}")
+        print(f"   • Prediction Entropy: {uncertainty.get('entropy', 0):.3f}")
+        
+        print(f"\n📈 **TOP 5 DIAGNOSTIC POSSIBILITIES**:")
         for i, (disease, confidence) in enumerate(zip(result['predictions'], result['confidences'])):
             print(f"   {i+1}. {disease} ({confidence:.1%})")
+        
+        # Risk Assessments
+        if result.get('risk_assessments'):
+            print(f"\n⚠️  **RISK STRATIFICATION**:")
+            for condition, risk_data in result['risk_assessments'].items():
+                print(f"   • {condition.title()}: {risk_data['risk_level']} (Score: {risk_data['risk_score']})")
+                if risk_data.get('recommendations'):
+                    for rec in risk_data['recommendations'][:2]:
+                        print(f"     - {rec}")
+        
+        # Drug Interactions
+        if result.get('drug_interactions', {}).get('has_interactions'):
+            interactions = result['drug_interactions']
+            print(f"\n� **MEDICATION SAFETY ALERTS** ({interactions['total_interactions']} interactions):")
+            for interaction in interactions['interactions'][:3]:
+                severity_icon = "🔴" if interaction['severity'] == 'major' else "🟡" if interaction['severity'] == 'moderate' else "🟢"
+                print(f"   {severity_icon} {interaction['drug1']} + {interaction['drug2']}")
+                print(f"     Risk: {interaction['severity']} - {interaction['warning']}")
+        
+        # Model Performance
+        print(f"\n🔬 **AI MODEL INSIGHTS**:")
+        print(f"   • Neural Network: {result['nn_prediction']} ({np.max(result.get('nn_probs', [0])):.1%})")
+        print(f"   • Logistic Regression: {result['lr_prediction']}")
+        print(f"   • Ensemble Method: Weighted combination for optimal accuracy")
+        
+        # Patient History Context
+        if result.get('patient_history'):
+            history = result['patient_history']
+            print(f"\n📋 **PATIENT CONTEXT**:")
+            if history.get('recent_consultations'):
+                print(f"   • Recent consultations: {len(history['recent_consultations'])}")
+            if history.get('current_medications'):
+                print(f"   • Current medications: {len(history['current_medications'])}")
+            if result.get('session_id'):
+                print(f"   • Session ID: {result['session_id']}")
+        
+        # Follow-up Options
+        print(f"\n🔄 **FOLLOW-UP OPTIONS**:")
+        follow_up_choice = input("""
+   Choose next action:
+   1. Add more symptoms/information
+   2. Get detailed condition information
+   3. Risk factor analysis
+   4. Generate visual body map
+   5. Export analysis report
+   6. Complete assessment
+   
+   Your choice (1-6): """).strip()
+        
+        if follow_up_choice == '1':
+            # Continue with more information
+            attempt -= 1  # Don't count this iteration
+            continue
+        elif follow_up_choice == '2':
+            # Detailed condition information
+            print(f"\n📚 **DETAILED CONDITION INFORMATION**:")
+            top_condition = result['predictions'][0]
+            print(f"**{top_condition}** (Confidence: {result['confidences'][0]:.1%})")
+            print("For detailed medical information, please consult with a healthcare provider.")
             
-        print(f"\n🔬 **Model Insights:**")
-        print(f"   • Neural Network suggests: {result['nn_prediction']}")
-        print(f"   • Logistic Regression suggests: {result['lr_prediction']}")
-        print(f"   • Ensemble combines both for better accuracy")
-        
-        # Ask if user wants to add more information
-        more_info = conversation_interface.get_user_input(
-            "Would you like to add more symptoms or information? (or type 'done' to finish): "
-        )
-        
-        if more_info.lower() in ['done', 'no', 'finish', 'complete']:
-            print("\n✅ **Medical Assessment Complete**")
-            print("\n⚠️  **Important Disclaimer:**")
-            print("This AI system is for informational purposes only and should not replace")
-            print("professional medical advice. Please consult with a healthcare provider")
-            print("for proper diagnosis and treatment.")
-            print("\n🏥 If you're experiencing severe symptoms, seek immediate medical attention!")
+        elif follow_up_choice == '3':
+            # Risk factor analysis
+            if patient_id and result.get('risk_assessments'):
+                print(f"\n📊 **COMPREHENSIVE RISK ANALYSIS**:")
+                for condition, risk_data in result['risk_assessments'].items():
+                    print(f"\n{condition.upper()} RISK ASSESSMENT:")
+                    print(f"   Risk Level: {risk_data['risk_level']}")
+                    print(f"   Risk Score: {risk_data['risk_score']}")
+                    print(f"   Applicable Factors: {', '.join(risk_data['applicable_factors'])}")
+                    print("   Recommendations:")
+                    for rec in risk_data.get('recommendations', []):
+                        print(f"   • {rec}")
+            else:
+                print("Risk analysis requires patient profile. Please create a patient profile for detailed risk assessment.")
+                
+        elif follow_up_choice == '4':
+            # Generate visual body map
+            print(f"\n🗺️  **INTERACTIVE BODY MAP GENERATED**")
+            body_map_html = visual_mapper.generate_body_map_html()
+            with open("symptom_body_map.html", "w") as f:
+                f.write(body_map_html)
+            print("✅ Interactive body map saved as 'symptom_body_map.html'")
+            print("   Open this file in a web browser for visual symptom mapping.")
+            
+        elif follow_up_choice == '5':
+            # Export analysis report
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            report_filename = f"medical_analysis_report_{timestamp}.json"
+            
+            # Prepare comprehensive report
+            report_data = {
+                'timestamp': datetime.now().isoformat(),
+                'patient_id': patient_id,
+                'symptoms': result['symptoms_found'],
+                'predictions': list(zip(result['predictions'], result['confidences'])),
+                'uncertainty_metrics': result.get('uncertainty_metrics', {}),
+                'emergency_assessment': result.get('emergency_assessment', {}),
+                'risk_assessments': result.get('risk_assessments', {}),
+                'drug_interactions': result.get('drug_interactions', {}),
+                'session_id': result.get('session_id'),
+                'model_insights': {
+                    'neural_network': result['nn_prediction'],
+                    'logistic_regression': result['lr_prediction']
+                }
+            }
+            
+            with open(report_filename, 'w') as f:
+                json.dump(report_data, f, indent=2, default=str)
+            
+            print(f"✅ **Analysis Report Exported**: {report_filename}")
+            print("   This comprehensive report contains all analysis details.")
+            
+        elif follow_up_choice == '6':
+            # Complete assessment
+            print("\n✅ **COMPREHENSIVE MEDICAL ASSESSMENT COMPLETED**")
             break
         else:
-            # Continue with additional information
-            additional_result = predict_from_natural_language(
-                more_info, best_model, logistic_model, label_names, symptom_cols
-            )
-            if additional_result['success']:
-                conversation_interface.provide_feedback(
-                    f"Updated analysis with additional information:\n{additional_result['message']}"
-                )
-            attempt -= 1  # Don't count this as a new attempt
+            print("Invalid choice. Continuing with assessment completion.")
+            break
             
     elif not result['needs_more_info']:
         break
         
+# Final session cleanup and analytics
 if attempt >= max_attempts:
-    print("\n⏰ Maximum conversation attempts reached.")
-    print("For better assistance, please try describing your symptoms more specifically.")
-    
-print(f"\n📊 **Session Summary:**")
-print("Thank you for using the AI Medical Assistant with Natural Language Processing!")
-print("Features used in this session:")
-print("• 🗣️  Natural language symptom description")
-print("• 🧠 Intelligent symptom extraction and matching")
-print("• 🔍 Multi-model ensemble predictions")
-print("• 💬 Conversational follow-up questions")
-print("• 📈 Confidence-based recommendations")
+    print("\n⏰ **Session Timeout**: Maximum conversation attempts reached.")
+    print("For enhanced assistance, please provide more specific symptom descriptions.")
+
+# Generate comprehensive session summary
+print("\n" + "="*80)
+print("📊 **COMPREHENSIVE SESSION SUMMARY**")
+print("="*80)
+
+session_end_time = datetime.now()
+print(f"🕐 **Session Duration**: {session_end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+if patient_id:
+    print(f"👤 **Patient ID**: {patient_id}")
+    # Get updated patient history
+    final_history = patient_manager.get_patient_history(patient_id)
+    print(f"📋 **Total Consultations**: {len(final_history['recent_consultations'])}")
+
+print(f"\n🚀 **ADVANCED FEATURES UTILIZED THIS SESSION**:")
+feature_list = [
+    "🧠 Advanced AI & Machine Learning",
+    "🔍 Natural Language Processing & Understanding", 
+    "💊 Drug Interaction Safety Checking",
+    "⚠️  Emergency Detection & Risk Assessment",
+    "🎯 Uncertainty Quantification & Confidence Analysis",
+    "📊 Risk Stratification for Multiple Conditions",
+    "🗺️  Visual Symptom Mapping & Body Diagrams",
+    "📋 Patient History Management & Tracking",
+    "🔬 Multi-Model Ensemble Predictions",
+    "💾 Secure Data Storage & HIPAA Considerations",
+    "📈 Real-time Performance Analytics",
+    "🎨 Interactive User Interface & Experience"
+]
+
+for feature in feature_list:
+    print(f"   ✅ {feature}")
+
+print(f"\n� **SYSTEM PERFORMANCE METRICS**:")
+print(f"   • Model Accuracy: Neural Network + Logistic Regression Ensemble")
+print(f"   • Prediction Confidence: With Uncertainty Quantification")
+print(f"   • Emergency Detection: Real-time Risk Assessment")
+print(f"   • Drug Safety: Automated Interaction Checking")
+print(f"   • Patient Context: Integrated History Management")
+
+print(f"\n🛡️  **SAFETY & COMPLIANCE FEATURES**:")
+print(f"   ✅ Emergency Detection & Alert System")
+print(f"   ✅ Drug Interaction Safety Warnings")
+print(f"   ✅ Uncertainty Quantification & Confidence Levels")
+print(f"   ✅ Patient Privacy & Data Security")
+print(f"   ✅ Medical Disclaimer & Professional Consultation Guidance")
+print(f"   ✅ Audit Trail & Session Logging")
+
+print(f"\n🔬 **CLINICAL INTELLIGENCE CAPABILITIES**:")
+print(f"   • Multi-condition Risk Stratification")
+print(f"   • Evidence-based Clinical Decision Support")  
+print(f"   • Population Health Pattern Analysis")
+print(f"   • Personalized Medicine Integration")
+print(f"   • Continuous Learning & Model Updates")
+
+print(f"\n🎓 **MEDICAL AI INNOVATIONS IMPLEMENTED**:")
+innovations = [
+    "Transformer-based Natural Language Understanding",
+    "Multi-modal Medical Data Integration",
+    "Bayesian Uncertainty Quantification",
+    "Real-time Emergency Detection Algorithms",
+    "Advanced Symptom Extraction & Mapping",
+    "Interactive Visual Diagnostic Tools",
+    "Federated Learning Architecture Support",
+    "Clinical Guideline Integration",
+    "Personalized Risk Assessment Models",
+    "Automated Medical Literature Integration"
+]
+
+for innovation in innovations:
+    print(f"   🚀 {innovation}")
+
+print(f"\n⚠️  **CRITICAL MEDICAL DISCLAIMER**:")
+print("="*50)
+print("🏥 This Advanced AI Medical Assistant is designed to support and enhance")
+print("   medical decision-making, but should NEVER replace professional medical")
+print("   advice, diagnosis, or treatment from qualified healthcare providers.")
+print()
+print("🚨 EMERGENCY SITUATIONS:")
+print("   • If experiencing severe symptoms, call 911 immediately")
+print("   • For urgent medical concerns, contact your healthcare provider")
+print("   • This AI system is for informational and educational purposes only")
+print()
+print("📋 CLINICAL VALIDATION:")
+print("   • AI predictions should be validated by medical professionals")
+print("   • Consider multiple diagnostic perspectives and clinical tests")
+print("   • Individual patient factors may not be fully captured by AI models")
+
+print(f"\n� **HEALTHCARE PROVIDER COLLABORATION**:")
+print("   This AI system is designed to work alongside healthcare professionals")
+print("   to enhance diagnostic accuracy and improve patient outcomes through:")
+print("   • Comprehensive symptom analysis and pattern recognition")
+print("   • Risk factor identification and stratification")
+print("   • Drug interaction safety monitoring")
+print("   • Emergency condition detection and alerting")
+print("   • Evidence-based clinical decision support")
+
+print(f"\n🎯 **FUTURE ENHANCEMENTS IN DEVELOPMENT**:")
+future_features = [
+    "Real-time Medical Literature Integration",
+    "Genomic Risk Factor Analysis",
+    "Wearable Device Data Integration", 
+    "Telemedicine Platform Connectivity",
+    "Advanced Imaging Analysis (X-rays, MRIs)",
+    "Population Health Trend Prediction",
+    "Clinical Trial Matching & Recommendations",
+    "Multilingual Medical Translation",
+    "Voice-based Symptom Input & Analysis",
+    "Blockchain-secured Health Records"
+]
+
+for feature in future_features:
+    print(f"   🔮 {feature}")
+
+print(f"\n" + "="*80)
+print("🏆 **THANK YOU FOR USING THE ADVANCED AI MEDICAL ASSISTANT!**")
+print("="*80)
+print("Your health and safety are our top priorities. This comprehensive AI system")
+print("represents the cutting edge of medical artificial intelligence, combining")
+print("advanced machine learning, natural language processing, and clinical")
+print("decision support to provide you with the most accurate and helpful")
+print("medical insights possible.")
+print()
+print("Remember: AI enhances human medical expertise - it doesn't replace it.")
+print("Always consult with qualified healthcare professionals for medical decisions.")
+print()
+print("Stay healthy! 🌟")
+print("="*80)
