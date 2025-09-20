@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical AI Assistant - ChatGPT Style</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="app-container">
+        
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <!-- Sidebar Header -->
+            <div class="sidebar-header">
+                <button class="new-chat-btn" id="newChatBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    New consultation
+                </button>
+            </div>
+
+            <!-- Chat History -->
+            <div class="chat-history">
+                <div class="chat-history-section">
+                    <div class="section-title">Today</div>
+                    <div class="chat-item active" data-chat-id="current">
+                        <div class="chat-item-content">
+                            <div class="chat-title">New Medical Consultation</div>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="action-btn" title="Rename">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn" title="Delete">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                    <path d="m3 6 18 0M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-history-section">
+                    <div class="section-title">Yesterday</div>
+                    <div class="chat-item" data-chat-id="chat1">
+                        <div class="chat-item-content">
+                            <div class="chat-title">Fever and headache symptoms</div>
+                        </div>
+                    </div>
+                    <div class="chat-item" data-chat-id="chat2">
+                        <div class="chat-item-content">
+                            <div class="chat-title">Chest pain consultation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-history-section">
+                    <div class="section-title">Previous 7 days</div>
+                    <div class="chat-item" data-chat-id="chat3">
+                        <div class="chat-item-content">
+                            <div class="chat-title">Medication side effects</div>
+                        </div>
+                    </div>
+                    <div class="chat-item" data-chat-id="chat4">
+                        <div class="chat-item-content">
+                            <div class="chat-title">Digestive health concerns</div>
+                        </div>
+                    </div>
+                    <div class="chat-item" data-chat-id="chat5">
+                        <div class="chat-item-content">
+                            <div class="chat-title">Routine health checkup questions</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="profile-avatar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-name">Healthcare Professional</div>
+                        <div class="profile-plan">Medical AI Assistant</div>
+                    </div>
+                    <button class="settings-btn" id="settingsBtn" title="Settings">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                            <path d="m12 1 0 6m0 6 0 6m11-7-6 0m-6 0-6 0" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Mobile Header -->
+            <div class="mobile-header">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <div class="mobile-title">Medical AI Assistant</div>
+                <button class="emergency-btn-mobile" id="emergencyBtnMobile" title="Emergency">
+                    🚨
+                </button>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="chat-container" id="chatContainer">
+                <!-- Welcome Message -->
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="welcome-content">
+                        <div class="welcome-icon">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor" opacity="0.1"/>
+                                <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h1 class="welcome-title">Medical AI Assistant</h1>
+                        <p class="welcome-subtitle">Your intelligent healthcare companion for symptoms analysis, medical guidance, and health consultations</p>
+                        
+                        <div class="welcome-features">
+                            <div class="feature-grid">
+                                <div class="feature-card">
+                                    <div class="feature-icon">🩺</div>
+                                    <div class="feature-title">Symptom Analysis</div>
+                                    <div class="feature-desc">Advanced AI-powered analysis of your symptoms with preliminary assessment</div>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🚨</div>
+                                    <div class="feature-title">Emergency Detection</div>
+                                    <div class="feature-desc">Intelligent detection of emergency symptoms with immediate guidance</div>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">💊</div>
+                                    <div class="feature-title">Medication Guidance</div>
+                                    <div class="feature-desc">Information about medications, interactions, and proper usage</div>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">📋</div>
+                                    <div class="feature-title">Health Records</div>
+                                    <div class="feature-desc">Secure management of patient information and consultation history</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="disclaimer">
+                            <div class="disclaimer-icon">⚠️</div>
+                            <div class="disclaimer-text">
+                                <strong>Medical Disclaimer:</strong> This AI provides educational information only. 
+                                Always consult qualified healthcare professionals for medical diagnosis and treatment. 
+                                In emergencies, call 911 immediately.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="chat-messages" id="chatMessages" style="display: none;">
+                    <!-- Messages will be inserted here dynamically -->
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area" id="inputArea">
+                <!-- Suggestions -->
+                <div class="suggestions" id="suggestions">
+                    <button class="suggestion-btn" data-suggestion="I'm experiencing fever and headache symptoms">
+                        🤒 Fever symptoms
+                    </button>
+                    <button class="suggestion-btn" data-suggestion="I have chest pain and need guidance">
+                        💓 Chest pain concern
+                    </button>
+                    <button class="suggestion-btn" data-suggestion="I have questions about my medication">
+                        💊 Medication question
+                    </button>
+                    <button class="suggestion-btn" data-suggestion="I'm having digestive issues">
+                        🤢 Digestive problems
+                    </button>
+                </div>
+
+                <!-- Input Form -->
+                <form class="input-form" id="inputForm">
+                    <div class="input-container">
+                        <textarea 
+                            class="message-input" 
+                            id="messageInput" 
+                            placeholder="Describe your symptoms or ask a medical question..."
+                            rows="1"
+                            maxlength="2000"
+                        ></textarea>
+                        <button type="button" class="attachment-btn" id="attachmentBtn" title="Attach file">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M21.44 11.05L12.25 20.24A6 6 0 0 1 3.81 11.8L13 2.61A4 4 0 0 1 18.66 8.27L10.5 16.43A2 2 0 0 1 7.64 13.57L15.54 5.67" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                        <button type="submit" class="send-btn" id="sendBtn" disabled>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Emergency Actions -->
+                <div class="emergency-actions" id="emergencyActions" style="display: none;">
+                    <button class="emergency-call-btn">
+                        📞 Call 911
+                    </button>
+                    <button class="emergency-poison-btn">
+                        ☠️ Poison Control
+                    </button>
+                    <button class="emergency-location-btn">
+                        📍 Find Hospital
+                    </button>
+                </div>
+
+                <!-- Footer Info -->
+                <div class="input-footer">
+                    <div class="model-info">
+                        Medical AI Assistant can make mistakes. Consider checking important medical information with healthcare professionals.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Analyzing your symptoms...</div>
+        </div>
+    </div>
+
+    <!-- Emergency Modal -->
+    <div class="modal-overlay" id="emergencyModal" style="display: none;">
+        <div class="modal emergency-modal">
+            <div class="modal-header">
+                <div class="emergency-icon">🚨</div>
+                <h2>Medical Emergency</h2>
+                <button class="modal-close" id="emergencyModalClose">&times;</button>
+            </div>
+            <div class="modal-content">
+                <div class="emergency-warning">
+                    <p><strong>If this is a medical emergency, do not rely on this AI.</strong></p>
+                    <p>Call emergency services immediately:</p>
+                </div>
+                <div class="emergency-contacts">
+                    <div class="emergency-contact">
+                        <div class="contact-icon">🚑</div>
+                        <div class="contact-info">
+                            <div class="contact-title">Emergency Services</div>
+                            <div class="contact-number">911</div>
+                        </div>
+                        <button class="contact-call-btn">Call</button>
+                    </div>
+                    <div class="emergency-contact">
+                        <div class="contact-icon">☠️</div>
+                        <div class="contact-info">
+                            <div class="contact-title">Poison Control</div>
+                            <div class="contact-number">1-800-222-1222</div>
+                        </div>
+                        <button class="contact-call-btn">Call</button>
+                    </div>
+                </div>
+                <div class="emergency-signs">
+                    <h3>Emergency Warning Signs:</h3>
+                    <ul>
+                        <li>Chest pain or pressure</li>
+                        <li>Difficulty breathing</li>
+                        <li>Loss of consciousness</li>
+                        <li>Severe bleeding</li>
+                        <li>Signs of stroke</li>
+                        <li>Severe allergic reactions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal" style="display: none;">
+        <div class="modal settings-modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close" id="settingsModalClose">&times;</button>
+            </div>
+            <div class="modal-content">
+                <div class="settings-section">
+                    <h3>Appearance</h3>
+                    <div class="setting-item">
+                        <label for="themeSelect">Theme</label>
+                        <select id="themeSelect">
+                            <option value="dark">Dark</option>
+                            <option value="light">Light</option>
+                            <option value="auto">Auto</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3>Medical Features</h3>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="emergencyDetection" checked>
+                            Enable emergency symptom detection
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="autoSave" checked>
+                            Auto-save conversations
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3>Privacy</h3>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="localProcessing" checked>
+                            Process data locally only
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
