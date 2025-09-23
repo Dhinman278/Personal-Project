@@ -11,6 +11,7 @@ class MedicalChatApp {
         
         this.initializeApp();
         this.setupEventListeners();
+        this.setupSettingsListeners();
         this.loadConversations();
     }
 
@@ -35,7 +36,16 @@ class MedicalChatApp {
             settingsModalClose: document.getElementById('settingsModalClose'),
             settingsBtn: document.getElementById('settingsBtn'),
             loadingOverlay: document.getElementById('loadingOverlay'),
-            emergencyActions: document.getElementById('emergencyActions')
+            emergencyActions: document.getElementById('emergencyActions'),
+            followupContainer: document.getElementById('followupContainer'),
+            followupBtn: document.getElementById('followupBtn')
+        };
+
+        // Follow-up monitoring state
+        this.followupState = {
+            lastDiagnosis: null,
+            lastVisit: null,
+            hasHighRiskDiagnosis: false
         };
 
         // Initialize conversation
@@ -86,6 +96,14 @@ class MedicalChatApp {
         this.elements.settingsBtn?.addEventListener('click', () => {
             this.showSettingsModal();
         });
+
+        // Follow-up monitoring button
+        this.elements.followupBtn?.addEventListener('click', () => {
+            this.handleFollowUpCheck();
+        });
+
+        // Settings functionality
+        this.setupSettingsListeners();
 
         // Emergency button (mobile)
         document.getElementById('emergencyBtnMobile')?.addEventListener('click', () => {
@@ -285,6 +303,11 @@ class MedicalChatApp {
         // Scroll to bottom
         this.scrollToBottom();
         
+        // Check for high-risk diagnosis in AI responses
+        if (role === 'assistant') {
+            this.checkForHighRiskDiagnosis(content);
+        }
+        
         console.log(`💬 Added ${role} message`);
     }
 
@@ -337,45 +360,152 @@ class MedicalChatApp {
     }
 
     async getAIResponse(userMessage) {
-        // Simulate processing delay
-        await this.delay(2000 + Math.random() * 1000);
+        try {
+            console.log('🧠 Calling advanced medical AI backend with message:', userMessage);
+            
+            const requestBody = {
+                symptoms: userMessage,
+                patient_info: {
+                    timestamp: new Date().toISOString()
+                }
+            };
+            console.log('📤 Request body:', requestBody);
+            
+            // Call the sophisticated medical AI backend
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            console.log('📥 Response status:', response.status, response.statusText);
+
+            if (!response.ok) {
+                console.error('❌ HTTP Error:', response.status, response.statusText);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('🎯 AI Response received:', result);
+            
+            // Return the natural language response directly
+            if (result.response) {
+                console.log('✅ Returning AI response:', result.response.substring(0, 100) + '...');
+                return result.response;
+            } else {
+                console.log('⚠️ No response field, using fallback');
+                return result.message || 'I apologize, but I encountered an issue processing your request. Please try again.';
+            }
+            
+        } catch (error) {
+            console.error('❌ Advanced AI backend error:', error);
+            console.error('❌ Error details:', error.message);
+            // Fallback to emergency pattern matching for critical cases
+            console.log('🔄 Using fallback response for:', userMessage);
+            return this.getFallbackResponse(userMessage);
+        }
+    }
+    
+    formatAdvancedAIResponse(analysis, originalMessage) {
+        let response = "";
         
+        // Handle alerts first (emergencies)
+        if (analysis.alerts && analysis.alerts.length > 0) {
+            for (const alert of analysis.alerts) {
+                if (alert.type === 'emergency') {
+                    response += `🚨 **MEDICAL EMERGENCY ALERT**\n\n`;
+                    response += `**${alert.condition}**\n`;
+                    response += `${alert.message}\n\n`;
+                    response += `**IMMEDIATE ACTION:** ${alert.action}\n\n`;
+                } else if (alert.type === 'urgent') {
+                    response += `⚠️ **URGENT MEDICAL CONCERN**\n\n`;
+                    response += `**${alert.condition}**\n`;
+                    response += `${alert.message}\n\n`;
+                    response += `**RECOMMENDED ACTION:** ${alert.action}\n\n`;
+                }
+            }
+        }
+        
+        // Main analysis
+        if (analysis.predictions && analysis.predictions.length > 0) {
+            const topPrediction = analysis.predictions[0];
+            
+            response += `🩺 **Medical Assessment**\n\n`;
+            response += `**Primary Assessment:** ${topPrediction.condition}\n`;
+            response += `**Confidence Level:** ${topPrediction.confidence}%\n`;
+            response += `**Severity:** ${topPrediction.severity.charAt(0).toUpperCase() + topPrediction.severity.slice(1)}\n\n`;
+            
+            if (topPrediction.matched_symptoms && topPrediction.matched_symptoms.length > 0) {
+                response += `**Symptoms Identified:**\n`;
+                for (const symptom of topPrediction.matched_symptoms) {
+                    response += `• ${symptom}\n`;
+                }
+                response += `\n`;
+            }
+            
+            response += `**Clinical Notes:** ${topPrediction.description}\n\n`;
+            response += `**Medical Recommendation:** ${topPrediction.recommendation}\n\n`;
+            
+            // Additional predictions
+            if (analysis.predictions.length > 1) {
+                response += `**Alternative Considerations:**\n`;
+                for (let i = 1; i < Math.min(analysis.predictions.length, 3); i++) {
+                    const pred = analysis.predictions[i];
+                    response += `• ${pred.condition} (${pred.confidence}% confidence)\n`;
+                }
+                response += `\n`;
+            }
+        }
+        
+        // Next steps
+        if (analysis.next_steps && analysis.next_steps.length > 0) {
+            response += `**Next Steps:**\n`;
+            for (const step of analysis.next_steps) {
+                response += `✅ ${step}\n`;
+            }
+            response += `\n`;
+        }
+        
+        // Professional disclaimer
+        response += `---\n`;
+        response += `**⚠️ Medical Disclaimer:** This AI analysis is for informational purposes only and does not replace professional medical advice, diagnosis, or treatment. Always consult qualified healthcare providers for medical decisions.\n\n`;
+        
+        // Overall confidence
+        if (analysis.model_confidence) {
+            response += `**System Confidence:** ${analysis.model_confidence.toFixed(1)}% | **Analysis Timestamp:** ${new Date().toLocaleString()}`;
+        }
+        
+        return response;
+    }
+    
+    getFallbackResponse(userMessage) {
         const messageLower = userMessage.toLowerCase();
         
-        // Emergency detection
-        const emergencyKeywords = [
-            'chest pain', 'heart attack', 'stroke', 'can\'t breathe', 
-            'difficulty breathing', 'severe bleeding', 'unconscious',
-            'severe allergic reaction', 'overdose', 'poisoning'
-        ];
-        
-        if (emergencyKeywords.some(keyword => messageLower.includes(keyword))) {
-            return this.getEmergencyResponse(userMessage);
+        // Critical emergency patterns (fallback safety)
+        if (messageLower.includes('chest pain') || messageLower.includes('heart attack') || 
+            messageLower.includes('can\'t breathe') || messageLower.includes('stroke')) {
+            return `🚨 **EMERGENCY DETECTED**\n\nCall 911 immediately. This appears to be a medical emergency requiring immediate professional care.`;
         }
         
-        // Medical symptom responses
-        if (messageLower.includes('fever') || messageLower.includes('temperature') || messageLower.includes('hot')) {
-            return this.getFeverResponse();
+        // Diabetes pattern recognition (fallback)
+        if ((messageLower.includes('hungry') && messageLower.includes('pee')) || 
+            (messageLower.includes('thirsty') && messageLower.includes('urinate')) ||
+            (messageLower.includes('dizzy') && messageLower.includes('hungry') && messageLower.includes('pee'))) {
+            return `🩺 **Potential Diabetes Symptoms Detected**\n\n` +
+                   `Your symptoms (increased hunger, frequent urination, dizziness) may indicate diabetes or blood sugar issues.\n\n` +
+                   `**Immediate Actions:**\n` +
+                   `• Get blood glucose tested as soon as possible\n` +
+                   `• Schedule appointment with healthcare provider\n` +
+                   `• Monitor symptoms closely\n\n` +
+                   `**These are classic diabetes symptoms that require medical evaluation.**`;
         }
         
-        if (messageLower.includes('headache') || messageLower.includes('head pain')) {
-            return this.getHeadacheResponse();
-        }
-        
-        if (messageLower.includes('stomach') || messageLower.includes('nausea') || messageLower.includes('vomit')) {
-            return this.getDigestiveResponse();
-        }
-        
-        if (messageLower.includes('medication') || messageLower.includes('medicine') || messageLower.includes('drug')) {
-            return this.getMedicationResponse();
-        }
-        
-        if (messageLower.includes('cough') || messageLower.includes('cold') || messageLower.includes('flu')) {
-            return this.getRespiratoryResponse();
-        }
-        
-        // General health consultation
-        return this.getGeneralResponse(userMessage);
+        // General fallback
+        return `I understand you're experiencing: "${userMessage}"\n\n` +
+               `I recommend consulting with a healthcare provider for proper evaluation and diagnosis. ` +
+               `If symptoms are severe or worsening, please seek medical attention promptly.`;
     }
 
     getEmergencyResponse(userMessage) {
@@ -701,6 +831,365 @@ What specific symptoms or health questions would you like to discuss?`;
 
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    handleFollowUpCheck() {
+        console.log('🔄 Handling follow-up check...');
+        
+        // Show the chat interface
+        this.elements.welcomeScreen.style.display = 'none';
+        this.elements.chatMessages.style.display = 'block';
+        
+        // Add follow-up message
+        const followUpMessage = "I'm here for my follow-up check. How are my symptoms progressing?";
+        this.addMessage(followUpMessage, 'user');
+        
+        // Add to message history
+        this.messageHistory.push({ role: 'user', content: followUpMessage });
+        
+        // Show typing indicator
+        this.showTypingIndicator();
+        
+        // Call follow-up API
+        this.getFollowUpResponse().then(response => {
+            this.hideTypingIndicator();
+            this.addMessage(response, 'assistant');
+            this.messageHistory.push({ role: 'assistant', content: response });
+        }).catch(error => {
+            console.error('❌ Follow-up error:', error);
+            this.hideTypingIndicator();
+            this.addMessage('I apologize, but I encountered an error with the follow-up check. Please describe your current symptoms manually.', 'assistant');
+        });
+    }
+
+    async getFollowUpResponse() {
+        try {
+            const response = await fetch('/api/followup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: 'current',
+                    days_since_last: this.getDaysSinceLastVisit(),
+                    current_symptoms: '',
+                    previous_diagnosis: this.followupState.lastDiagnosis || ''
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result.response || 'Please describe your current symptoms for follow-up assessment.';
+            
+        } catch (error) {
+            console.error('❌ Follow-up API error:', error);
+            return 'Please describe your current symptoms so I can assess any changes since our last consultation.';
+        }
+    }
+
+    getDaysSinceLastVisit() {
+        if (!this.followupState.lastVisit) {
+            return 0;
+        }
+        const now = new Date();
+        const lastVisit = new Date(this.followupState.lastVisit);
+        const diffTime = Math.abs(now - lastVisit);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    }
+
+    checkForHighRiskDiagnosis(aiResponse) {
+        const response = aiResponse.toLowerCase();
+        const highRiskConditions = ['diabetes', 'high likelihood', 'probable diabetes', 'likely diagnosis'];
+        
+        const hasHighRisk = highRiskConditions.some(condition => response.includes(condition));
+        
+        if (hasHighRisk) {
+            this.followupState.hasHighRiskDiagnosis = true;
+            this.followupState.lastDiagnosis = this.extractDiagnosis(response);
+            this.followupState.lastVisit = new Date().toISOString();
+            
+            // Show follow-up reminder
+            setTimeout(() => {
+                this.showFollowUpReminder();
+            }, 3000); // Show after 3 seconds for demo
+            
+            // Save to localStorage for persistence
+            localStorage.setItem('medicalFollowup', JSON.stringify(this.followupState));
+        }
+    }
+
+    extractDiagnosis(response) {
+        if (response.includes('diabetes')) return 'Type 2 Diabetes';
+        if (response.includes('hypoglycemia')) return 'Hypoglycemia';
+        if (response.includes('dehydration')) return 'Dehydration';
+        return 'Medical condition requiring monitoring';
+    }
+
+    showFollowUpReminder() {
+        if (this.followupState.hasHighRiskDiagnosis) {
+            this.elements.followupContainer.style.display = 'block';
+            
+            // Update button text based on diagnosis
+            if (this.followupState.lastDiagnosis) {
+                this.elements.followupBtn.textContent = `📅 Follow-up: ${this.followupState.lastDiagnosis} - How are you feeling?`;
+            }
+        }
+    }
+
+    setupSettingsListeners() {
+        // Theme selector
+        const themeSelect = document.getElementById('themeSelect');
+        themeSelect?.addEventListener('change', (e) => {
+            this.setTheme(e.target.value);
+            this.showSettingsSaved();
+        });
+
+        // Font size slider
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        fontSizeSlider?.addEventListener('input', (e) => {
+            const size = e.target.value;
+            fontSizeValue.textContent = `${size}px`;
+            this.setFontSize(size);
+            this.showSettingsSaved();
+        });
+
+        // Clear all chats button
+        const clearAllChatsBtn = document.getElementById('clearAllChats');
+        clearAllChatsBtn?.addEventListener('click', () => {
+            this.confirmClearAllChats();
+        });
+
+        // Auto-save settings when checkboxes change
+        const settingsCheckboxes = [
+            'emergencyDetection',
+            'followupReminders', 
+            'confidenceScores',
+            'autoSave',
+            'soundEffects',
+            'medicalAlerts'
+        ];
+        
+        settingsCheckboxes.forEach(id => {
+            const checkbox = document.getElementById(id);
+            checkbox?.addEventListener('change', () => {
+                this.saveSettings();
+                this.showSettingsSaved();
+            });
+        });
+
+        // Chat retention dropdown
+        const chatRetention = document.getElementById('chatRetention');
+        chatRetention?.addEventListener('change', () => {
+            this.saveSettings();
+            this.showSettingsSaved();
+        });
+
+        // Load saved settings
+        this.loadSettings();
+    }
+
+    setTheme(theme) {
+        const body = document.body;
+        
+        // Add transition class for smooth theme change
+        body.classList.add('theme-transition');
+        
+        if (theme === 'light') {
+            body.setAttribute('data-theme', 'light');
+        } else if (theme === 'dark') {
+            body.setAttribute('data-theme', 'dark');
+        } else if (theme === 'auto') {
+            // Use system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        }
+        
+        // Remove transition class after animation
+        setTimeout(() => {
+            body.classList.remove('theme-transition');
+        }, 300);
+        
+        // Save theme preference
+        localStorage.setItem('medicalAI_theme', theme);
+        console.log('🎨 Theme changed to:', theme);
+    }
+
+    setFontSize(size) {
+        document.documentElement.style.setProperty('--font-size-base', `${size}px`);
+        localStorage.setItem('medicalAI_fontSize', size);
+        console.log('📝 Font size changed to:', size + 'px');
+    }
+
+    confirmClearAllChats() {
+        if (confirm('🗑️ Are you sure you want to delete all chat history? This action cannot be undone.')) {
+            this.clearAllChats();
+        }
+    }
+
+    clearAllChats() {
+        // Clear conversations map
+        this.conversations.clear();
+        
+        // Clear localStorage
+        localStorage.removeItem('medicalAI_conversations');
+        localStorage.removeItem('medicalFollowup');
+        
+        // Clear current chat
+        this.elements.chatMessages.innerHTML = '';
+        
+        // Reset to welcome screen
+        this.elements.welcomeScreen.style.display = 'block';
+        this.elements.chatMessages.style.display = 'none';
+        
+        // Hide follow-up container
+        this.elements.followupContainer.style.display = 'none';
+        
+        // Reset message history
+        this.messageHistory = [];
+        
+        // Reset follow-up state
+        this.followupState = {
+            lastDiagnosis: null,
+            lastVisit: null,
+            hasHighRiskDiagnosis: false
+        };
+        
+        console.log('🗑️ All chat history cleared');
+        alert('✅ All chat history has been successfully deleted.');
+    }
+
+    loadSettings() {
+        // Load theme
+        const savedTheme = localStorage.getItem('medicalAI_theme') || 'dark';
+        const themeSelect = document.getElementById('themeSelect');
+        if (themeSelect) {
+            themeSelect.value = savedTheme;
+            this.setTheme(savedTheme);
+        }
+        
+        // Load font size
+        const savedFontSize = localStorage.getItem('medicalAI_fontSize') || '16';
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        if (fontSizeSlider) {
+            fontSizeSlider.value = savedFontSize;
+            fontSizeValue.textContent = `${savedFontSize}px`;
+            this.setFontSize(savedFontSize);
+        }
+        
+        // Load other settings from localStorage
+        const settings = JSON.parse(localStorage.getItem('medicalAI_settings') || '{}');
+        
+        // Apply checkbox settings
+        const checkboxes = [
+            'emergencyDetection',
+            'followupReminders', 
+            'confidenceScores',
+            'autoSave',
+            'soundEffects',
+            'medicalAlerts'
+        ];
+        
+        checkboxes.forEach(id => {
+            const checkbox = document.getElementById(id);
+            if (checkbox) {
+                checkbox.checked = settings[id] !== undefined ? settings[id] : checkbox.checked;
+            }
+        });
+        
+        console.log('⚙️ Settings loaded');
+    }
+
+    saveSettings() {
+        const settings = {};
+        
+        // Save checkbox states
+        const checkboxes = [
+            'emergencyDetection',
+            'followupReminders',
+            'confidenceScores', 
+            'autoSave',
+            'soundEffects',
+            'medicalAlerts'
+        ];
+        
+        checkboxes.forEach(id => {
+            const checkbox = document.getElementById(id);
+            if (checkbox) {
+                settings[id] = checkbox.checked;
+            }
+        });
+        
+        // Save chat retention setting
+        const chatRetention = document.getElementById('chatRetention');
+        if (chatRetention) {
+            settings.chatRetention = chatRetention.value;
+        }
+        
+        localStorage.setItem('medicalAI_settings', JSON.stringify(settings));
+        console.log('💾 Settings saved');
+    }
+
+    // Add delete button to chat items
+    addDeleteButtonToChats() {
+        const chatItems = document.querySelectorAll('.chat-item');
+        chatItems.forEach(chatItem => {
+            if (!chatItem.querySelector('.delete-chat-btn')) {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-chat-btn';
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.title = 'Delete this chat';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.deleteChat(chatItem.dataset.chatId);
+                });
+                chatItem.appendChild(deleteBtn);
+            }
+        });
+    }
+
+    deleteChat(chatId) {
+        if (confirm('Delete this chat conversation?')) {
+            this.conversations.delete(chatId);
+            localStorage.setItem('medicalAI_conversations', JSON.stringify(Array.from(this.conversations.entries())));
+            
+            // Remove from sidebar
+            const chatItem = document.querySelector(`[data-chat-id="${chatId}"]`);
+            if (chatItem) {
+                chatItem.remove();
+            }
+            
+            // If it's the current chat, reset
+            if (this.currentChatId === chatId) {
+                this.startNewConversation();
+            }
+            
+            console.log('🗑️ Chat deleted:', chatId);
+        }
+    }
+
+    showSettingsSaved() {
+        // Create or get settings saved indicator
+        let indicator = document.querySelector('.settings-saved');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.className = 'settings-saved';
+            indicator.innerHTML = '✅ Settings saved';
+            document.body.appendChild(indicator);
+        }
+        
+        // Show the indicator
+        indicator.classList.add('show');
+        
+        // Hide after 2 seconds
+        setTimeout(() => {
+            indicator.classList.remove('show');
+        }, 2000);
     }
 }
 

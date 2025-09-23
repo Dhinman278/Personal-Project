@@ -196,6 +196,13 @@
                     </button>
                 </div>
 
+                <!-- Follow-up Monitoring -->
+                <div class="followup-container" id="followupContainer" style="display: none;">
+                    <button class="followup-btn" id="followupBtn">
+                        📅 Follow-up Check-in - How are your symptoms today?
+                    </button>
+                </div>
+
                 <!-- Input Form -->
                 <form class="input-form" id="inputForm">
                     <div class="input-container">
@@ -305,31 +312,92 @@
             </div>
             <div class="modal-content">
                 <div class="settings-section">
-                    <h3>Appearance</h3>
+                    <h3>🎨 Appearance</h3>
                     <div class="setting-item">
-                        <label for="themeSelect">Theme</label>
-                        <select id="themeSelect">
-                            <option value="dark">Dark</option>
-                            <option value="light">Light</option>
-                            <option value="auto">Auto</option>
+                        <label for="themeSelect">Theme Mode</label>
+                        <select id="themeSelect" class="settings-select">
+                            <option value="dark">🌙 Dark Mode</option>
+                            <option value="light">☀️ Light Mode</option>
+                            <option value="auto">🔄 Auto (System)</option>
                         </select>
                     </div>
-                </div>
-                <div class="settings-section">
-                    <h3>Medical Features</h3>
                     <div class="setting-item">
-                        <label>
+                        <label for="fontSizeSlider">Font Size</label>
+                        <div class="slider-container">
+                            <input type="range" id="fontSizeSlider" min="12" max="20" value="16" class="settings-slider">
+                            <span id="fontSizeValue">16px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🩺 Medical Features</h3>
+                    <div class="setting-item">
+                        <label class="checkbox-label">
                             <input type="checkbox" id="emergencyDetection" checked>
-                            Enable emergency symptom detection
+                            <span class="checkmark"></span>
+                            Emergency symptom detection
                         </label>
                     </div>
                     <div class="setting-item">
-                        <label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="followupReminders" checked>
+                            <span class="checkmark"></span>
+                            Follow-up monitoring reminders
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="confidenceScores" checked>
+                            <span class="checkmark"></span>
+                            Show AI confidence percentages
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="checkbox-label">
                             <input type="checkbox" id="autoSave" checked>
+                            <span class="checkmark"></span>
                             Auto-save conversations
                         </label>
                     </div>
                 </div>
+
+                <div class="settings-section">
+                    <h3>💬 Chat Management</h3>
+                    <div class="setting-item">
+                        <label for="chatRetention">Keep chat history for</label>
+                        <select id="chatRetention" class="settings-select">
+                            <option value="7">7 days</option>
+                            <option value="30" selected>30 days</option>
+                            <option value="90">90 days</option>
+                            <option value="forever">Forever</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <button class="danger-btn" id="clearAllChats">
+                            🗑️ Delete All Chat History
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🔔 Notifications</h3>
+                    <div class="setting-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="soundEffects">
+                            <span class="checkmark"></span>
+                            Sound effects
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="medicalAlerts" checked>
+                            <span class="checkmark"></span>
+                            Medical emergency alerts
+                        </label>
+                    </div>
+                </div>
+
                 <div class="settings-section">
                     <h3>Privacy</h3>
                     <div class="setting-item">
@@ -343,6 +411,6 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=2.0"></script>
 </body>
 </html>

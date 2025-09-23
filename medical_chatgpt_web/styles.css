@@ -1,7 +1,7 @@
 /* Medical AI Assistant - ChatGPT.com Style */
 
 :root {
-    /* Color Palette - ChatGPT Dark Theme */
+    /* Color Palette - Dark Theme (Default) */
     --bg-primary: #212121;
     --bg-secondary: #171717;
     --bg-tertiary: #2f2f2f;
@@ -47,6 +47,28 @@
     --font-size-xl: 20px;
     --font-size-2xl: 24px;
     --font-size-3xl: 30px;
+}
+
+/* Light Mode Theme */
+[data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f7f8;
+    --bg-tertiary: #ffffff;
+    --bg-quaternary: #f0f0f0;
+    
+    --text-primary: #0d0d0d;
+    --text-secondary: #676767;
+    --text-tertiary: #8e8ea0;
+    
+    --accent-primary: #10a37f;
+    --accent-hover: #0d8f6f;
+    --accent-light: rgba(16, 163, 127, 0.1);
+    
+    --border-color: #c4c4c4;
+    --border-light: #d1d5db;
+    
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
 /* Reset and Base Styles */
@@ -638,6 +660,78 @@ body {
     transform: translateY(-1px);
 }
 
+/* Follow-up Monitoring Styles */
+.followup-container {
+    max-width: 768px;
+    margin: 0 auto 16px auto;
+    padding: 0 16px;
+}
+
+.followup-btn {
+    width: 100%;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, var(--warning-color), #ff9500);
+    border: none;
+    border-radius: var(--radius-lg);
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    animation: pulse 2s infinite;
+}
+
+.followup-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 165, 2, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(255, 165, 2, 0); }
+}
+
+/* Follow-up monitoring styles */
+.followup-container {
+    max-width: 768px;
+    margin: 0 auto var(--spacing-md);
+    padding: 0 var(--spacing-md);
+}
+
+.followup-btn {
+    width: 100%;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    border: none;
+    border-radius: var(--radius-lg);
+    color: white;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(238, 90, 82, 0.3);
+    animation: pulse-glow 2s infinite;
+}
+
+.followup-btn:hover {
+    background: linear-gradient(135deg, #ee5a52, #ff6b6b);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(238, 90, 82, 0.4);
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(238, 90, 82, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 8px rgba(238, 90, 82, 0.6);
+    }
+}
+
 .input-form {
     max-width: 768px;
     margin: 0 auto;
@@ -1100,6 +1194,275 @@ body {
         --border-color: #ffffff;
         --text-secondary: #ffffff;
     }
+}
+
+/* Enhanced Settings Styles */
+.settings-section {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.settings-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    gap: 16px;
+}
+
+.setting-item label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+.settings-select {
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 14px;
+    min-width: 160px;
+}
+
+.settings-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings-slider {
+    width: 120px;
+    height: 6px;
+    background: var(--bg-tertiary);
+    outline: none;
+    border-radius: 3px;
+    -webkit-appearance: none;
+}
+
+.settings-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.settings-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+#fontSizeValue {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    min-width: 40px;
+}
+
+/* Custom Checkbox Styles */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    position: relative;
+}
+
+.checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.danger-btn {
+    padding: 10px 16px;
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.danger-btn:hover {
+    background: #ff3742;
+    transform: translateY(-1px);
+}
+
+/* Theme Toggle Animation */
+.theme-transition {
+    transition: background-color 0.3s ease, color 0.3s ease !important;
+}
+
+.theme-transition * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+
+/* Individual Chat Delete Button */
+.chat-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chat-item:hover {
+    background: var(--bg-hover);
+    transform: translateX(4px);
+}
+
+.delete-chat-btn {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    margin-left: 8px;
+}
+
+.chat-item:hover .delete-chat-btn {
+    opacity: 1;
+}
+
+.delete-chat-btn:hover {
+    background: rgba(255, 71, 87, 0.1);
+    transform: scale(1.1);
+}
+
+/* Font Size Adjustments */
+:root {
+    --font-size-base: 16px;
+}
+
+body {
+    font-size: var(--font-size-base);
+}
+
+.message {
+    font-size: calc(var(--font-size-base) * 0.95);
+}
+
+.message.user {
+    font-size: var(--font-size-base);
+}
+
+.message.ai {
+    font-size: calc(var(--font-size-base) * 0.98);
+}
+
+.input-area textarea {
+    font-size: var(--font-size-base);
+}
+
+/* Settings Auto-save Indicator */
+.settings-saved {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--success-color);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    z-index: 10000;
+    box-shadow: var(--shadow);
+}
+
+.settings-saved.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Enhanced Danger Button */
+.danger-button {
+    background: linear-gradient(135deg, var(--danger-color), #ff3838);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.danger-button:hover {
+    background: linear-gradient(135deg, #ff3838, #ff2929);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
 }
 
 /* Reduced Motion Support */

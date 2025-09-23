@@ -1273,14 +1273,34 @@ class ConversationalInterface:
         print("\n" + "-"*60)
 
 # 1. Load the original Training.csv dataset (4920 samples with 120 per disease)
-df = pd.read_csv('C:/Users/bubhi/OneDrive/Desktop/AI/tfenv311/Training.csv')
+# Try multiple possible paths for Training.csv
+training_paths = [
+    'C:/Users/bubhi/OneDrive/Desktop/AI/tfenv311/Training.csv',
+    'C:/Users/bubhi/OneDrive/Desktop/AI/Training.csv',
+    'Training.csv'
+]
+
+df = None
+for path in training_paths:
+    try:
+        df = pd.read_csv(path)
+        print(f"Successfully loaded Training.csv from: {path}")
+        break
+    except FileNotFoundError:
+        continue
+
+if df is None:
+    raise FileNotFoundError("Could not find Training.csv in any of the expected locations")
 print("Loaded original Training.csv dataset with full samples!")
 
 # 2. Prepare features and labels  
-symptom_cols = [col for col in df.columns if col != 'prognosis']
+# Properly exclude target columns and unnamed columns
+symptom_cols = [col for col in df.columns if col not in ['prognosis', 'Unnamed: 133'] and not col.startswith('Unnamed')]
+print(f"Feature columns count: {len(symptom_cols)}")
 X = df[symptom_cols].fillna(0).values  # Fill NaN values with 0
 y = pd.factorize(df['prognosis'])[0]
 label_names = pd.factorize(df['prognosis'])[1]
+print(f"Data shape: X={X.shape}, y={y.shape}")
 
 # 3. Oversample minority classes
 ros = RandomOverSampler(random_state=42)
@@ -1387,17 +1407,36 @@ if retrain:
 
 # 6b. Train Logistic Regression model
 logistic_model_path = 'logistic_model.pkl'
+logistic_model = None
+
 if os.path.exists(logistic_model_path):
     print("Loading existing logistic regression model...")
-    with open(logistic_model_path, 'rb') as f:
-        logistic_model = pickle.load(f)
-else:
-    print("Training logistic regression model...")
+    try:
+        with open(logistic_model_path, 'rb') as f:
+            logistic_model = pickle.load(f)
+        
+        # Check if model features match current data features
+        try:
+            # Test prediction with a sample to check feature compatibility
+            test_sample = X_train[:1]
+            logistic_model.predict(test_sample)
+            print(f"✅ Model feature count matches data: {X_train.shape[1]} features")
+        except ValueError as e:
+            print(f"❌ Feature mismatch detected: {e}")
+            print("🔄 Retraining logistic regression model due to feature mismatch...")
+            logistic_model = None
+            
+    except Exception as e:
+        print(f"❌ Error loading model: {e}")
+        logistic_model = None
+
+if logistic_model is None:
+    print("🚀 Training new logistic regression model...")
     logistic_model = LogisticRegression(max_iter=1000, random_state=42)
     logistic_model.fit(X_train, y_train)
     with open(logistic_model_path, 'wb') as f:
         pickle.dump(logistic_model, f)
-    print("Logistic regression model trained and saved.")
+    print("✅ Logistic regression model trained and saved.")
 
 # 7. Evaluate individual models and create ensemble
 nn_loss, nn_accuracy = best_model.evaluate(X_test, y_test, verbose=0)

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medical AI Debug Test</title>
+</head>
+<body>
+    <h1>Medical AI Backend Test</h1>
+    <button onclick="testAPI()">Test Diabetes Detection API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const testMessage = "I feel like I have to pee a lot more and I also feel like I am dizzy and hungry all the time";
+            
+            try {
+                console.log('Testing with message:', testMessage);
+                
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        symptoms: testMessage,
+                        patient_info: {
+                            timestamp: new Date().toISOString()
+                        }
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('Backend result:', result);
+                
+                document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                
+            } catch (error) {
+                console.error('API Error:', error);
+                document.getElementById('result').innerHTML = 'Error: ' + error.message;
+            }
+        }
+
+        // Also test fallback function
+        function testFallback() {
+            const testMessage = "I feel like I have to pee a lot more and I also feel like I am dizzy and hungry all the time";
+            const messageLower = testMessage.toLowerCase();
+            
+            console.log('Testing fallback patterns:');
+            console.log('Contains hungry:', messageLower.includes('hungry'));
+            console.log('Contains pee:', messageLower.includes('pee'));
+            console.log('Contains dizzy:', messageLower.includes('dizzy'));
+            
+            const diabetesPattern = (messageLower.includes('dizzy') && messageLower.includes('hungry') && messageLower.includes('pee'));
+            console.log('Diabetes pattern match:', diabetesPattern);
+        }
+
+        // Run fallback test on page load
+        testFallback();
+    </script>
+</body>
+</html>
